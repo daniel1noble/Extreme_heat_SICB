@@ -119,13 +119,16 @@ Now, we have the points of interest mapped. Next, we can use these points to ext
 #for (i in 1:nrow(points)) {
 #  locs[[i]] <- NicheMapR::micro_silo(loc = c(points[i,1], points[i,2]), email = "pieter.arnold@anu.edu.au")
 #}
-#saveRDS(locs, "./outdir/micro_locs_10.RDS")
+#saveRDS(locs, "./outdir/micro/micro_locs_10.RDS")
 
-locs <- readRDS("./outdir/micro_locs_10.RDS")
+locs <- readRDS("./outdir/micro/micro_locs_10.RDS")
 summary(locs)
 
 ```
 
+## Heat and water budgets plus dynamic energy budgets
+
+We have microclimates at the 10 locations in australia for those grids (size to be determined). Now we want to use the ectotherm function to calculate water and heat budgets for a Sleepy lizard at those locations along with activity budgets based on thermoregulatory parameters. We can also compute DEB life cycles at these locations too. 
 
 ```{r}
 #| label: sleepy_DEB
@@ -133,6 +136,74 @@ summary(locs)
 #| message: false
 #| warning: false
 
+#### Parameters ####
+
+# Dynamic energy budget parameters. We'll do this later
+
+# Thermoregulatory parameters (Needed for Heat Budget and Activity Models)
+       Ww_g <- 180              # g, body mass. Weight at puberty from Mike's Table 2
+      shape <- 1                # cylinder
+    shape_b <- 10               # ratio of long to short axis of cylinder
+     T_pref <- 33.5             # preferred body temperature (animal will attempt to regulate as close to this value as possible)
+    T_F_min <- 26               # degrees C, lower body temperature for foraging
+    T_F_max <- 39               # degrees C, upper body temperature for foraging
+    T_B_min <- 13               # degrees C, minimum basking temperature
+   T_RB_min <- 13              # degrees C, temperature at which animal will move to a basking site
+     CT_max <- 42               # degrees C, critical thermal maximum (animal will die if CT_kill = 1 and this threshold is exceeded)
+     CT_min <- 3.5              # degrees C, critical thermal minimum (used by program to determine depth selected when inactive and burrowing)
+
+#### Traits ####
+
+# Behavioural traits (needed for Activity Models)
+      diurn <- 1                 # Diurnal activity allowed (1) or not (0)?
+    nocturn <- 0                 # Nocturnal activity allowed (1) or not (0)?
+     crepus <- 0                 # Crepuscular activity allowed (1) or not (0)?
+     burrow <- 1                 # Shelter in burrow allowed (1) or not (0)?
+ shade_seek <- 1                 # Shade seeking allowed (1) or not (0)?
+   pct_cond <- 10                # Percentage of animal surface contacting the substrate (\%)
+
+# Life history traits. Do for DEB
+# clutchsize <- 8                # Eggs per clutch
+#       L_b <- L.b              # Structural length at birth (cm)}\cr}
+
+#### Run ectotherm model for heat and activity budgets ####
+ecto_heat_activity <- list()
+
+for(i in 1:length(locs)) {
+
+micro <- locs[[i]]
+
+  ecto_heat_activity[[i]] <- ectotherm( Ww_g = Ww_g,
+                      shape = shape,
+                    shape_b = shape_b,
+                     T_pref = T_pref,
+                    T_F_min = T_F_min,
+                  T_F_max = T_F_max,
+                  T_B_min = T_B_min,
+                 T_RB_min = T_RB_min,
+                   CT_min = CT_min,
+                   CT_max = CT_max,
+                    diurn = diurn,
+                  nocturn = nocturn,
+                   crepus = crepus,
+               shade_seek = shade_seek,
+                   burrow = burrow,
+                 pct_cond = pct_cond,
+                   nyears = 2,
+                   metout = micro$metout,
+                     soil = micro$soil, 
+                  soilpot = micro$soilpot,
+                soilmoist = micro$soilmoist, 
+                    humid = micro$humid,
+                    tcond = micro$tcond, 
+                  shadmet = micro$shadmet,
+                 shadsoil = micro$shadsoil, 
+                  shadpot = micro$shadpot,
+                shadmoist = micro$shadmoist,
+                shadhumid = micro$shadhumid,
+                shadtcond = micro$shadtcond)
+
+}
 
 
 
