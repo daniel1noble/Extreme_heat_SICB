@@ -3,20 +3,20 @@ title: "Extreme heat"
 bibliography: ./bib/refs.bib
 csl: ./bib/integrative-and-comparative-biology.csl
 format:
-	html:
-    	toc: true
-    	toc-location: left
-    	toc-depth: 3
-    	toc-title: "**Table of Contents**"
-    	output-file: "index.html"
-    	theme: cosmo
-    	embed-resources: true
-    	code-fold: show
-    	code-tools: true
-    	number-sections: true
-    	fontsize: "12"
-    	max-width: "10"
-    	code-overflow: wrap
+ html:
+    toc: true
+    toc-location: left
+    toc-depth: 3
+    toc-title: "**Table of Contents**"
+    output-file: "index.html"
+    theme: cosmo
+    embed-resources: true
+    code-fold: show
+    code-tools: true
+    number-sections: true
+    fontsize: "12"
+    max-width: "10"
+    code-overflow: wrap
 editor_options: 
   chunk_output_type: console
 execute:
@@ -36,4 +36,82 @@ editor:
   markdown: 
     wrap: 80
 ---
+
+```{r, libraries}
+#| label: libraries
+#| echo: false
+#| message: false
+#| warning: false
+
+# Install pacman for easy loading and installation of packages
+if(!requireNamespace("pacman", quietly = TRUE)) {
+  install.packages("pacman")
+}
+
+# Load required packages
+pacman::p_load(terra, sf, ggplot2, rnaturalearth, mapview, raster, NicheMapR)
+
+```
+
+## Data Preparation
+
+Lets first map the Heat Wave Days (HWD) across the Sleepy lizard distribution. We need to extract the raster data on HWD and crop by the sleep lizard distribution. Then, we need to find the grid cells that show high HWD and low HWD at the same latitude. 
+
+```{r, spatial_dat}
+#| label: spatial_dat
+#| echo: false
+#| message: false
+#| warning: false
+
+# Load the NetCDF file
+nc_file <- "./indir/BEST (Berkeley Earth Surface Temperature) 1880-2021_TX90p_ANN_AverageMap_2000-2021_-40.45to-9.94_107.27to170.02.nc"
+nc_data <- terra::rast(nc_file)
+
+# You can select the first layer or a specific variable
+r <- nc_data[[1]]
+
+# Load the Sleepy Lizard range shapefile
+sleepy_lizard <- st_read("./indir/sleepy_lizzard_range/data_0.shp")
+
+# Make sure CRS match
+sleepy_lizard <- st_transform(sleepy_lizard, crs(r))
+
+# Country outline: Australia
+australia <- ne_countries(scale = "large", country = "Australia", returnclass = "sf")
+australia <- st_transform(australia, crs(r))
+
+# Crop raster to sleepy lizard extent because that's all we need for microclimate models
+r_crop <- raster::mask(crop(r, extent(sleepy_lizard)), sleepy_lizard) # crop
+
+# Convert raster to data frame for ggplot
+r_df <- as.data.frame(r_crop, xy = TRUE, na.rm = TRUE)
+names(r_df)[3] <- "value"  # Rename value column
+
+# Plot points
+points <- r_df  %>% dplyr::filter(((x > 125 & x < 130) | (x > 145 & x < 150)) & (y > -30 & y < -29))
+
+# Plot with ggplot
+ggplot() +
+  geom_raster(data = r_df, aes(x = x, y = y, fill = value)) +
+  geom_point(data = points, aes(x = x, y = y)) +
+  scale_fill_viridis_c(option = "plasma", na.value = NA) +
+  geom_sf(data = sleepy_lizard, fill = NA, color = "black", size = 0.8, lwd = 0.5) +  # <- thicker lines
+  geom_sf(data = australia, fill = NA, color = "black", size = 0.8, lwd = 0.5) +
+  coord_sf() +
+  theme_minimal() +
+  labs(title = "Extreme Weather with Sleepy Lizard Range",
+       fill = "Extreme Weather\nValue")
+```
+
+## Microclimate models
+
+Now, we have the points of interest mapped. Next, we can use these points to extract microclimate data from the raster layers. This will allow us to analyze the specific environmental conditions experienced by the Sleepy Lizard in relation to extreme heat events.
+
+```{r}
+#| label: microclimate_models
+#| echo: false
+#| message: false
+#| warning: false
+
+# Extract microclimate data for points of interest
 
