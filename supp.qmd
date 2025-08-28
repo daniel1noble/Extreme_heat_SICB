@@ -1,0 +1,39 @@
+---
+title: "Extreme heat"
+bibliography: ./bib/refs.bib
+csl: ./bib/integrative-and-comparative-biology.csl
+format:
+	html:
+    	toc: true
+    	toc-location: left
+    	toc-depth: 3
+    	toc-title: "**Table of Contents**"
+    	output-file: "index.html"
+    	theme: cosmo
+    	embed-resources: true
+    	code-fold: show
+    	code-tools: true
+    	number-sections: true
+    	fontsize: "12"
+    	max-width: "10"
+    	code-overflow: wrap
+editor_options: 
+  chunk_output_type: console
+execute:
+  freeze: auto  # re-render only when source changes
+  cache: false
+  echo: false
+  warning: false
+  error: false
+  include: true
+crossref:
+  fig-title: 'Figure'
+  fig-labels: arabic
+  title-delim: "-"
+  fig-prefix: "Figure"
+  tbl-prefix: "Table"
+editor: 
+  markdown: 
+    wrap: 80
+---
+
