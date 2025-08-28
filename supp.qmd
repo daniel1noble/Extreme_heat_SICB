@@ -49,7 +49,7 @@ if(!requireNamespace("pacman", quietly = TRUE)) {
 }
 
 # Load required packages
-pacman::p_load(terra, sf, ggplot2, rnaturalearth, mapview, raster, NicheMapR)
+pacman::p_load(terra, sf, ggplot2, rnaturalearth, mapview, raster, NicheMapR, lutz)
 
 ```
 
@@ -113,5 +113,28 @@ Now, we have the points of interest mapped. Next, we can use these points to ext
 #| message: false
 #| warning: false
 
-# Extract microclimate data for points of interest
+# Extract microclimate data for points of interest. Run once for now and save object
+
+#locs <- list()
+#for (i in 1:nrow(points)) {
+#  locs[[i]] <- NicheMapR::micro_silo(loc = c(points[i,1], points[i,2]), email = "pieter.arnold@anu.edu.au")
+#}
+#saveRDS(locs, "./outdir/micro_locs_10.RDS")
+
+locs <- readRDS("./outdir/micro_locs_10.RDS")
+summary(locs)
+
+```
+
+
+```{r}
+#| label: sleepy_DEB
+#| echo: false
+#| message: false
+#| warning: false
+
+
+
+
+```
 
