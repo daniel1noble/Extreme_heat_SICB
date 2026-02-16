@@ -209,6 +209,7 @@ We can also compute DEB life cycles at these locations too.
     nocturn <- 0                 # Nocturnal activity allowed (1) or not (0)?
      crepus <- 0                 # Crepuscular activity allowed (1) or not (0)?
      burrow <- 1                 # Shelter in burrow allowed (1) or not (0)?
+  shdburrow <- 1                # Choose if the animal's retreat is in the open (0), in the shade when above or below CTmin in sun (1) or in shade always (2)
      mindepth <- 1               # Minimum burrowing depth
      maxdepth <- 10              # Maximum burrowing depth
  shade_seek <- 1                 # Shade seeking allowed (1) or not (0)?
@@ -220,7 +221,7 @@ We can also compute DEB life cycles at these locations too.
 
 #### Run ectotherm model for heat and activity budgets ####
 
-## SCANERIO 1: With burrowing allowed (as per natural behaviour of sleepy lizard)
+## SCANERIO 1: With burrowing allowed under shade, and with ability to go deep (as per natural behaviour of sleepy lizard under extreme heat)
 ecto_heat_activity <- list()
 
 for(i in 1:length(locs)) {
@@ -243,6 +244,7 @@ for(i in 1:length(locs)) {
               crepus = crepus,
               shade_seek = shade_seek,
               burrow = burrow,
+              shdburrow = shdburrow,
               mindepth = mindepth,
               maxdepth = maxdepth,
               pct_cond = pct_cond,
@@ -268,11 +270,12 @@ for(i in 1:length(locs)) {
    # TSKY and TSUB are both very low in 17,18 (5-6pm) 
    # This was due to mindepth and maxdepth not being set.
   
-## SCENARIO 2: With burrowing not allowed (to see if that changes the pattern of body temperature and activity time)
+## SCENARIO 2: With burrowing not allowed but under shade possible as they can seek shade.
 
-# Now try comparing with the same model but with burrowing not allowed to see if that changes the pattern of body temperature and activity time.
+# Now try comparing with the same model but with burrowing not allowed to see if that changes the pattern of body temperature and activity time. Here Mx and min depth are irrelevent as burrowing is not allowed
      burrow <- 0                 # Shelter in burrow allowed (1) or not (0)?
- 
+  shdburrow <- 1
+
 ecto_heat_activity_no_burrow <- list()
 
 for(i in 1:length(locs)) {
@@ -295,6 +298,7 @@ for(i in 1:length(locs)) {
               crepus = crepus,
               shade_seek = shade_seek,
               burrow = burrow, # changed here
+              shdburrow = shdburrow,
               mindepth = mindepth,
               maxdepth = maxdepth,
               pct_cond = pct_cond,
@@ -311,11 +315,7 @@ for(i in 1:length(locs)) {
               shadmoist = micro$shadmoist,
               shadhumid = micro$shadhumid,
               shadtcond = micro$shadtcond)
-  
 }
-
-
-
 
 ```
 
@@ -366,7 +366,7 @@ extract_times_activity <- function(x){
 }
 
 list_process <- lapply(ecto_heat_activity, function(x) extract_times_activity(x))
-
+list_process2 <- lapply(ecto_heat_activity_no_burrow, function(x) extract_times_activity(x))
 
 
 p1_list <- list()
@@ -437,6 +437,59 @@ ggsave(p1_list[[1]],
 ggsave(p1_list[[2]], 
        filename = "./outdir/extreme_heat_sleepy_lizard_microclimate_inset2.png", 
        width = 10, height = 7, bg = "transparent")
+
+## Now for Scenario 2 with no burrowing allowed.
+
+p1_list2 <- list()
+p2_list2 <- list()
+
+for(i in 1:length(list_process2)){
+  environ_lizard2 <- list_process2[[i]]$environ_lizard2
+     rain_lizard2 <- list_process2[[i]]$rain_lizard2
+   per_active_day <- list_process2[[i]]$per_active_day
+  
+  p1_list2[[i]] <- 
+    ggplot() +
+    geom_line(data = environ_lizard2, aes(y = Temperature, x = dates, colour = Temps)) +
+    geom_line(data = rain_lizard2, aes(y = rainfall*4, x = dates, colour = "Rainfall")) +
+    labs(y = bquote(Temperature~(degree*C)), x = "Date") +
+    scale_y_continuous(limits = c(0,45),
+                       sec.axis = sec_axis(~./4, name = "Rainfall (mm)")) +
+    scale_colour_manual(name = "",
+                        values = c("Air temperature (2 m)" = "#000000", 
+                                   "Body temperature" = "#DAA520",
+                                   "Rainfall" = "#87CEEB"),
+                        labels = c("Air Temperature", "Body Temperature", "Rain")) +
+    annotate("text", x = as.POSIXct(date_max)-1e6, y = 45, # change if date changes
+             label = paste0("Thermal Safety Margin: ",
+                            round(median(per_active_day$TSM), digits = 1)), hjust = 0) +
+    theme_classic() + 
+    theme(legend.position = "none", 
+          axis.title = element_blank()) + theme(axis.text = element_text(size = 24),
+    panel.background = element_rect(fill = "transparent", colour = NA),
+    plot.background  = element_rect(fill = "transparent", colour = NA),
+    legend.background = element_rect(fill = "transparent", colour = NA),
+    legend.box.background = element_rect(fill = "transparent", colour = NA))
+  
+  p2_list2[[i]] <-
+    ggplot() +
+    geom_line(data = rain_lizard2, aes(y = rainfall, x = dates), colour = "#87CEEB") +
+    labs(y = "Rainfall (mm)", x = "Date") +
+    theme_classic() + theme(axis.title = element_blank(),
+    panel.background = element_rect(fill = "transparent", colour = NA),
+    plot.background  = element_rect(fill = "transparent", colour = NA), legend.position = "none", axis.text = element_text(size = 24))
+}
+
+ggsave(p1_list2[[1]], 
+       filename = "./outdir/extreme_heat_sleepy_lizard_microclimate_inset_noburrow.png", 
+       width = 10, height = 7, bg = "transparent")
+
+ggsave(p1_list2[[2]], 
+       filename = "./outdir/extreme_heat_sleepy_lizard_microclimate_inset2_noburrow.png", 
+       width = 10, height = 7, bg = "transparent")
+
+
+
 
 ```
 
