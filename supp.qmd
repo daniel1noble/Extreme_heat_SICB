@@ -71,7 +71,7 @@ custom_colors <- c(
 )
 
 # read the image
-img <- image_read("./pic/Subject_2.png")
+img <- image_read("./pic/sleepy_full.JPG")
   g <- rasterGrob(img, interpolate = TRUE)
 
 
@@ -142,7 +142,7 @@ extreme_map <-
   coord_sf() +
   theme_void() +   
   labs(fill = "% of days \n> TX90p") +
-  annotation_custom(g, xmin = 112, xmax = 135, ymin = -50, ymax = -30) + theme(legend.position = "top")
+  annotation_custom(g, xmin = 112, xmax = 135, ymin = -50, ymax = -30.5) + theme(legend.position = "top")
 extreme_map
 
 ```
