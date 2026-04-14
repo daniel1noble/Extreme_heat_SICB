@@ -476,7 +476,9 @@ ggsave(p1_list2[[1]],
 ggsave(p1_list2[[2]],
        filename = "./outdir/extreme_heat_sleepy_lizard_microclimate_inset2_noburrow.png",
        width = 10, height = 7, bg = "transparent")
-
+ggsave(extreme_map,
+       filename = "./outdir/extreme_heat_sleepy_lizard_map.png",
+       width = 10, height = 7, bg = "transparent")
 ```
 
 
